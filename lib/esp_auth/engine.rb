@@ -59,7 +59,7 @@ module EspAuth
 
           devise :omniauthable, :trackable, :timeoutable
 
-          validates_presence_of :uid
+          validates_presence_of :uid, :if => :validates_presence_of_uid?
 
           searchable do
             integer :uid
@@ -100,6 +100,10 @@ module EspAuth
 
           define_method :to_s do
             email? ? "#{name} <#{email}>" : name
+          end
+
+          define_method :validates_presence_of_uid? do
+            true
           end
         end
 
