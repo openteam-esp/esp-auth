@@ -41,12 +41,10 @@ module EspAuth
             undef_method "#{role}_of?", "#{role}?"
 
             define_method "#{role}_of?" do |context|
-              puts ">>> in #{role}_of?(#{context.inspect}) <<<"
-              p permissions.for_role(role).for_context_and_ancestors(context).exists?
+              permissions.for_role(role).for_context_and_ancestors(context).exists?
             end
 
             define_method "#{role}?" do
-              puts ">>> in #{role}? <<<"
               permissions.for_role(role).exists?
             end
           end
@@ -152,6 +150,7 @@ module EspAuth
         end
 
         def self.esp_auth_subcontext
+          attr_accessible :title, :context
           belongs_to :context
           has_many :permissions, :as => :context
 

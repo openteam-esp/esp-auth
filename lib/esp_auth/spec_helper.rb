@@ -15,7 +15,11 @@ module EspAuth
       @roles ||= {}
       @roles["#{prefix}_#{role}"] ||= {}
       @roles["#{prefix}_#{role}"][context] ||= create_user.tap do |user|
-        user.permissions.create! :context => context, :role => role
+        user.permissions.new do |permission|
+          permission.context = context
+          permission.role = role
+          permission.save!
+        end
       end
     end
 
