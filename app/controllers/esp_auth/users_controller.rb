@@ -11,15 +11,16 @@ class EspAuth::UsersController < EspAuth::ApplicationController
   end
 
   protected
-    def collection
-      get_collection_ivar || set_collection_ivar(search_and_paginate_collection)
-    end
 
-    def search_and_paginate_collection
-      search_object = searcher_for(resource_instance_name)
-      search_object.permissions_count_gt = 1
-      search_object.pagination = {:page => params[:page], :per_page => 10}
-      search_object.order_by = 'uid' if search_object.term.blank?
-      search_object.results
-    end
+  def collection
+    get_collection_ivar || set_collection_ivar(search_and_paginate_collection)
+  end
+
+  def search_and_paginate_collection
+    search_object = searcher_for(resource_instance_name)
+    search_object.permissions_count_gt = 1
+    search_object.pagination = {:page => params[:page], :per_page => 10}
+    search_object.order_by = 'uid' if search_object.term.blank?
+    search_object.results
+  end
 end

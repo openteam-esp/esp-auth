@@ -20,7 +20,7 @@
       </div>
       <div class='auth'>
         <span class='current_user'><%= current_user %></span>
-        <%= link_to('Выход', esp_auth.destroy_user_session_path) %>
+        <%= link_to('Выход', '/sign_out') %>
       </div>
     <% else %>
       <div class='auth'>

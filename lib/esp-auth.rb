@@ -13,6 +13,7 @@ require 'has_searcher'
 require 'inherited_resources'
 require 'kaminari'
 require 'sunspot_rails'
+require 'sso-auth'
 
 module EspAuth
 end

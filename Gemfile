@@ -7,6 +7,7 @@ gem 'compass-rails'
 gem 'jquery-rails'
 gem 'russian'
 gem 'configliere'
+gem 'sso-auth'
 
 group :test do
   gem 'fabrication'

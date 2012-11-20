@@ -10,7 +10,7 @@ class Ability
     end
 
     can :manage, Permission do | permission |
-      permission.context && user.manager_of?(permission.context)
+      permission.context && can?(:manage, permission.context)
     end
 
     can [:new, :create], Permission do | permission |
@@ -22,7 +22,7 @@ class Ability
     end
 
     can :manage, :application do
-      user.have_permissions?
+      user.permissions.any?
     end
 
     can :manage, :permissions do
@@ -37,5 +37,7 @@ class Ability
     can :manage, Subcontext do | subcontext |
       user.manager_of? subcontext
     end
+
+    can :manage, :all if user.manager_of?(Context.first)
   end
 end

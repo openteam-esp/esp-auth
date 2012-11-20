@@ -12,7 +12,7 @@
     <%= polymorphic_context_tree_for form %>
     <%= form.input :role, :as => :select, :collection => Permission.human_enums[:role].invert, :include_blank => t('commons.not_selected') %>
   <% end %>
-  <%= form.buttons :class => 'button-group' do %>
+  <%= form.actions :class => 'button-group' do %>
     <li><%= button_tag t('permissions.create'), :class => 'button icon approve' %></li>
     <li><%= link_to t('permissions.cancel'), esp_auth.users_path, :class => 'button icon arrowleft'  %></li>
   <% end %>

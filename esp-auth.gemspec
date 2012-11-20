@@ -32,6 +32,7 @@ Gem::Specification.new do |s|
   s.add_dependency 'omniauth-oauth2'
   s.add_dependency 'progress_bar'
   s.add_dependency 'sunspot_rails'
+  s.add_dependency 'sso-auth'
   s.add_dependency 'timecop'
 
   s.add_development_dependency 'rails'

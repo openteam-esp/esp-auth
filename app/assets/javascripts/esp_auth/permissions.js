@@ -30,7 +30,7 @@ $(function(){
   $('#permission_user_search').autocomplete({
     source: function( request, response ) {
       $.ajax({
-        url: '/auth/users/search?term='+$('#permission_user_search').val(),
+        url: '/esp-auth/users/search?term='+$('#permission_user_search').val(),
         dataType: "json",
         data: request.term,
         success: function(data) {

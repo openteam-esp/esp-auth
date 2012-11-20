@@ -1,42 +1,17 @@
 module EspAuth
-  class Engine < Rails::Engine
+  class Engine < ::Rails::Engine
     isolate_namespace EspAuth
-
-    config.after_initialize do
-      begin
-        Settings.resolve!
-      rescue => e
-        puts "WARNING! #{e.message}"
-      end
-    end
-
-    initializer "sso_client.devise", :before => 'devise.omniauth' do |app|
-      require File.expand_path("../../../lib/omniauth/strategies/identity", __FILE__)
-      Devise.setup do |config|
-        config.omniauth :identity, Settings['sso.key'], Settings['sso.secret'], :client_options => {:site => Settings['sso.url']}
-      end
-    end
 
     config.to_prepare do
       ActionController::Base.class_eval do
         helper_method :polymorphic_context_tree_for
 
-        def self.esp_load_and_authorize_resource
-          before_filter :authenticate_user!
-          before_filter :authorize_user_can_manage_application!
+        define_singleton_method :esp_load_and_authorize_resource do
           inherit_resources
-          load_and_authorize_resource
-          skip_load_and_authorize_resource :only => :index
-          rescue_from CanCan::AccessDenied do |exception|
-            render :file => "#{Rails.root}/public/403", :formats => [:html], :status => 403, :layout => false
-          end
+          sso_load_and_authorize_resource
         end
 
         protected
-          def authorize_user_can_manage_application!
-            authorize! :manage, :application
-          end
-
           def polymorphic_context_tree_for(form)
             form.input :polymorphic_context,  :as => :select,
                                               :collection => current_user.context_tree,
@@ -50,16 +25,11 @@ module EspAuth
       end
       ActiveRecord::Base.class_eval do
         def self.esp_auth_user
+          sso_auth_user
 
           attr_accessible :name, :email, :nickname, :name, :first_name, :last_name, :location, :description, :image, :phone, :urls, :raw_info, :uid
 
-          has_many :permissions
-
-          default_value_for :sign_in_count, 0
-
-          devise :omniauthable, :trackable, :timeoutable
-
-          validates_presence_of :uid, :if => :validates_presence_of_uid?
+          validates_presence_of :uid
 
           searchable do
             integer :uid
@@ -67,11 +37,16 @@ module EspAuth
             integer :permissions_count do permissions.count end
           end
 
-          Permission.enums[:role].each do | role |
+          Permission.available_roles.each do | role |
+            undef_method "#{role}_of?", "#{role}?"
+
             define_method "#{role}_of?" do |context|
-              permissions.for_role(role).for_context_and_ancestors(context).exists?
+              puts ">>> in #{role}_of?(#{context.inspect}) <<<"
+              p permissions.for_role(role).for_context_and_ancestors(context).exists?
             end
+
             define_method "#{role}?" do
+              puts ">>> in #{role}? <<<"
               permissions.for_role(role).exists?
             end
           end
@@ -82,33 +57,30 @@ module EspAuth
 
           alias_method :have_roles?, :have_permissions?
 
+
           define_method :contexts do
             permissions.map(&:context).uniq
           end
 
           define_method :context_tree do
-            instance_variable_get(:@context_tree) || instance_variable_set(:@context_tree, contexts
-                                                                                          .flat_map{|c| c.respond_to?(:subtree) ? c.subtree : c}
-                                                                                          .uniq
-                                                                                          .flat_map{|c| c.respond_to?(:subcontexts) ? [c] + c.subcontexts : c }
-                                                                                          .uniq)
+            instance_variable_get(:@context_tree) ||
+              instance_variable_set(:@context_tree, contexts
+                                    .flat_map{|c| c.respond_to?(:subtree) ? c.subtree : c}
+                                    .uniq
+                                    .flat_map{|c| c.respond_to?(:subcontexts) ? [c] + c.subcontexts : c }
+                                    .uniq)
           end
 
           define_method :context_tree_of do | klass |
             context_tree.select{|node| node.is_a?(klass)}
           end
 
-          define_method :to_s do
-            email? ? "#{name} <#{email}>" : name
-          end
-
-          define_method :validates_presence_of_uid? do
-            true
-          end
+          alias_method :to_s, :sso_auth_name
         end
 
         def self.esp_auth_permission
           attr_accessor :user_search, :user_uid, :user_name, :user_email, :polymorphic_context
+          attr_accessible :user_uid, :user_name, :user_email, :polymorphic_context, :role, :user_search
 
           belongs_to :context, :polymorphic => true
           belongs_to :user
@@ -147,6 +119,9 @@ module EspAuth
 
           has_enum :role
 
+          define_singleton_method :available_roles do
+            Permission.enums[:role]
+          end
 
           private
             delegate :index!, :to => :user, :prefix => true
