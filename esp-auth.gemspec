@@ -25,7 +25,7 @@ Gem::Specification.new do |s|
   s.add_dependency 'formtastic'
   s.add_dependency 'has_enum'
   s.add_dependency 'has_scope'
-  s.add_dependency 'has_searcher'
+  s.add_dependency 'has_searcher', '< 0.0.90'
   s.add_dependency 'inherited_resources'
   s.add_dependency 'kaminari'
   s.add_dependency 'omniauth'

@@ -2,7 +2,8 @@ source :rubygems
 
 gemspec
 
-gem 'compass'
+gem 'sass-rails'
+gem 'compass-rails'
 gem 'jquery-rails'
 gem 'russian'
 gem 'configliere'
